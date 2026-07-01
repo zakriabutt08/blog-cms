@@ -11,7 +11,7 @@
                 <div class="p-6 md:p-8 space-y-6">
                     <div class="border-b border-white/10 dark:border-slate-800/40 pb-4">
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ __('Post Details') }}</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Create a draft post. Authors can write drafts, and Admins can publish them.') }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Write your article and choose whether it should stay drafted or go live now.') }}</p>
                     </div>
 
                     <form method="POST" action="{{ route('posts.store') }}" class="space-y-6">
@@ -43,13 +43,41 @@
                             @enderror
                         </div>
 
+                        @can('create', App\Models\Post::class)
+                            @php
+                                $canPublish = false;
+                                try {
+                                    $canPublish = auth()->user()->hasPermissionTo('publish-post');
+                                } catch (\Throwable $e) {
+                                    $canPublish = false;
+                                }
+                            @endphp
+
+                            @if ($canPublish)
+                                <!-- Publish Status -->
+                                <div class="space-y-2">
+                                    <label for="published" class="block text-sm font-bold text-gray-700 dark:text-gray-300">
+                                        {{ __('Publish Status') }}
+                                    </label>
+                                    <select name="published" id="published"
+                                        class="w-full px-4 py-2.5 glass-input focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-150 @error('published') border-red-500/50 @enderror">
+                                        <option value="0" @selected(old('published', '0') === '0')>{{ __('Save as draft') }}</option>
+                                        <option value="1" @selected(old('published') === '1')>{{ __('Publish now') }}</option>
+                                    </select>
+                                    @error('published')
+                                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endif
+                        @endcan
+
                         <!-- Form Actions -->
                         <div class="flex items-center justify-end space-x-3 pt-4 border-t border-white/10 dark:border-slate-800/40">
                             <a href="{{ route('dashboard') }}" class="inline-flex items-center px-4 py-2.5 bg-slate-500/10 hover:bg-slate-500/20 text-gray-750 dark:text-gray-250 text-sm font-bold rounded-xl transition duration-150">
                                 {{ __('Cancel') }}
                             </a>
                             <button type="submit" class="inline-flex items-center px-4 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition duration-150">
-                                {{ __('Save Draft') }}
+                                {{ __('Save Post') }}
                             </button>
                         </div>
                     </form>

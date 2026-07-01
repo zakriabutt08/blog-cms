@@ -22,21 +22,20 @@ class DashboardController extends Controller
             $data['unpublishedPosts'] = $data['totalPosts'] - $data['publishedPosts'];
             $data['totalUsers'] = User::count();
 
-            // Fetch all posts with author info
-            $data['posts'] = Post::with('user')->latest()->get();
-            // Fetch all users with their roles
-            $data['users'] = User::with('roles')->get();
+            // Fetch the latest dashboard records only
+            $data['posts'] = Post::with('user')->latest()->limit(5)->get();
+            $data['users'] = User::with('roles')->latest()->limit(5)->get();
         } elseif ($user->hasRole('Author')) {
             $data['totalPosts'] = $user->posts()->count();
             $data['publishedPosts'] = $user->posts()->where('published', true)->count();
             $data['unpublishedPosts'] = $data['totalPosts'] - $data['publishedPosts'];
 
-            // Fetch the author's own posts
-            $data['posts'] = $user->posts()->latest()->get();
+            // Fetch the author's latest dashboard records only
+            $data['posts'] = $user->posts()->latest()->limit(5)->get();
         } else {
             // Reader Role (or fallback)
             // Fetch only published posts for the feed
-            $data['posts'] = Post::where('published', true)->with('user')->latest()->get();
+            $data['posts'] = Post::where('published', true)->with('user')->latest()->limit(5)->get();
         }
 
         return view('dashboard', $data);

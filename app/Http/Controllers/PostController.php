@@ -8,6 +8,15 @@ use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
+    private function canPublish(Request $request): bool
+    {
+        try {
+            return $request->user()->hasPermissionTo('publish-post');
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -41,15 +50,23 @@ class PostController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
+            'published' => 'sometimes|boolean',
         ]);
+
+        $published = $request->boolean('published');
+
+        if ($published && !$this->canPublish($request)) {
+            abort(403, 'You do not have permission to publish posts.');
+        }
 
         $post = $request->user()->posts()->create([
             'title' => $validated['title'],
             'body' => $validated['body'],
-            'published' => false, // Always defaults to draft upon creation
+            'published' => $published,
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Post created successfully as draft!');
+        $status = $post->published ? 'published' : 'saved as draft';
+        return redirect()->route('dashboard')->with('success', "Post created successfully and {$status}!");
     }
 
     /**
@@ -96,7 +113,16 @@ class PostController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'body' => 'required|string',
+            'published' => 'sometimes|boolean',
         ]);
+
+        if ($request->has('published')) {
+            if (!$this->canPublish($request)) {
+                abort(403, 'You do not have permission to change publish status.');
+            }
+
+            $validated['published'] = $request->boolean('published');
+        }
 
         $post->update($validated);
 

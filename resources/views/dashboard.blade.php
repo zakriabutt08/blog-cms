@@ -190,7 +190,7 @@
                                 <tr class="bg-slate-500/5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     <th class="px-6 py-4">{{ __('Name') }}</th>
                                     <th class="px-6 py-4">{{ __('Email') }}</th>
-                                    <th class="px-6 py-4{{ __('Roles') }}</th>
+                                    <th class="px-6 py-4">{{ __('Roles') }}</th>
                                     <th class="px-6 py-4">{{ __('Registered At') }}</th>
                                 </tr>
                             </thead>
